@@ -17,10 +17,6 @@ save_to = 'attachments/'
 
 if not os.path.exists(save_to): os.makedirs(save_to)
 
-#try:
-#    with open(prefs_path, 'rb') as f:
-#        prefs = pickle.load(f)
-#except:
 prefs = dict(start=0)
 
 total = 0
@@ -67,6 +63,3 @@ prefs['start'] = i
 print()
 print('Total:  %s' % (total))
 print('Failed: %s' % (failed))
-
-#with open(prefs_path, 'wb') as f:
-#    pickle.dump(prefs, f)
