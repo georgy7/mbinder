@@ -44,7 +44,7 @@ def save_attachments(mid):
                     name = decoded_name[0][0].decode(name_encoding)
                 
                 name = '%s %s' % (total, name)
-                print('Saving %s' % (name))
+                # print('Saving %s' % (name))
                 with open(save_to + name, 'wb') as f:
                     f.write(part.get_payload(decode=True))
             except:
