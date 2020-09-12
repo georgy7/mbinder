@@ -17,7 +17,11 @@ save_to = 'attachments/'
 
 if not os.path.exists(save_to): os.makedirs(save_to)
 
-prefs = dict(start=0)
+prefs = {
+    'start': 0,
+    'stop': 100000000000   # On which message to stop (not included).
+}
+
 
 total = 0
 failed = 0
@@ -53,12 +57,11 @@ def save_attachments(mid):
                 failed = failed + 1
 
 
-for i in range(prefs['start'], 1000000):
+for i in range(prefs['start'], prefs['stop']):
     try:
         save_attachments(i)
     except KeyError:
         break
-prefs['start'] = i
 
 print()
 print('Total:  %s' % (total))
