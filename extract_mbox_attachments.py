@@ -61,7 +61,10 @@ for i in range(prefs['start'], prefs['stop']):
     try:
         save_attachments(i)
     except KeyError:
+        print('The whole mbox file was processed.')
         break
+    if i % 1000 == 0:
+        print('Messages processed: {}'.format(i))
 
 print()
 print('Total:  %s' % (total))
