@@ -41,7 +41,7 @@ total = 0
 failed = 0
 
 
-def save(mid, part):
+def save(mid, part, attachments_counter):
     global total
     total = total + 1
 
@@ -55,6 +55,7 @@ def save(mid, part):
             name = decoded_name[0][0].decode(name_encoding)
 
         name = '%s %s' % (mid, name)
+        attachments_counter['value'] += 1
 
         try:
             with open(prefs['save_to'] + name, 'wb') as f:
@@ -65,7 +66,7 @@ def save(mid, part):
                 extension = pathlib.Path(name).suffix
                 extension = extension if len(extension) <= 20 else ''
 
-                short_name = str(mid) + extension
+                short_name = '%s %s%s' % (mid, attachments_counter['value'], extension)
 
                 with open(prefs['save_to'] + short_name, 'wb') as f:
                     f.write(part.get_payload(decode=True))
@@ -78,19 +79,20 @@ def save(mid, part):
         failed = failed + 1
 
 
-def check_part(mid, part):
+def check_part(mid, part, attachments_counter):
     if part.get_content_disposition() == 'attachment':
-        save(mid, part)
+        save(mid, part, attachments_counter)
     elif part.is_multipart():
         for p in part.get_payload():
-            check_part(mid, p)
+            check_part(mid, p, attachments_counter)
 
 
 def process_message(mid):
     msg = mb.get_message(mid)
     if msg.is_multipart():
+        attachments_counter = {'value': 0}
         for part in msg.get_payload():
-            check_part(mid, part)
+            check_part(mid, part, attachments_counter)
 
 
 for i in range(prefs['start'], prefs['stop']):
