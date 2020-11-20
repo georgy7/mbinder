@@ -7,6 +7,15 @@
 # Attachments will be extracted into subfolder "attachments" 
 # with prefix "n " where "n" is an order of attachment in mbox file. 
 
+# ---------------
+# I make no representations or warranties of any kind concerning
+# the software, express, implied, statutory or otherwise,
+# including without limitation warranties of title, merchantability,
+# fitness for a particular purpose, non infringement, or the
+# absence of latent or other defects, accuracy, or the present or
+# absence of errors, whether or not discoverable, all to the
+# greatest extent permissible under applicable law.
+
 import errno
 import mailbox
 import os
