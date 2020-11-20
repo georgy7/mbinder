@@ -7,9 +7,10 @@
 # Attachments will be extracted into subfolder "attachments" 
 # with prefix "n " where "n" is an order of attachment in mbox file. 
 
+import errno
 import mailbox
-import os, errno
-import pathlib      # since Python 3.4
+import os
+import pathlib  # since Python 3.4
 import traceback
 from email.header import decode_header
 
@@ -20,7 +21,7 @@ prefs = {
     'stop': 100000000000  # On which message to stop (not included).
 }
 
-assert (os.path.isfile(prefs['file']))
+assert os.path.isfile(prefs['file'])
 
 mb = mailbox.mbox(prefs['file'])
 
