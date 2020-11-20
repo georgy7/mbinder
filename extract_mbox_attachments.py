@@ -10,18 +10,19 @@
 import mailbox, pickle, traceback, os
 from email.header import decode_header
 
-mb = mailbox.mbox('all.mbox')
-
-prefs_path = '.save-attachments'
-save_to = 'attachments/'
-
-if not os.path.exists(save_to): os.makedirs(save_to)
-
 prefs = {
+    'file': 'all.mbox',
+    'save_to': 'attachments/',
     'start': 0,
     'stop': 100000000000   # On which message to stop (not included).
 }
 
+assert(os.path.isfile(prefs['file']))
+
+mb = mailbox.mbox(prefs['file'])
+
+if not os.path.exists(prefs['save_to']):
+    os.makedirs(prefs['save_to'])
 
 total = 0
 failed = 0
@@ -30,26 +31,24 @@ def save_attachments(mid):
     msg = mb.get_message(mid)
     if msg.is_multipart():
         for part in msg.get_payload():
-            if part.get_content_type() != 'application/octet-stream':
+            if part.get_content_disposition() != 'attachment':
                 continue
-            
+
             global total
             total = total + 1
 
-            print()
             try:
                 decoded_name = decode_header(part.get_filename())
-                print(decoded_name)
-                
+
                 if isinstance(decoded_name[0][0], str):
                     name = decoded_name[0][0]
                 else:
                     name_encoding = decoded_name[0][1]
                     name = decoded_name[0][0].decode(name_encoding)
-                
-                name = '%s %s' % (total, name)
-                # print('Saving %s' % (name))
-                with open(save_to + name, 'wb') as f:
+
+                name = '%s %s' % (mid, name)
+
+                with open(prefs['save_to'] + name, 'wb') as f:
                     f.write(part.get_payload(decode=True))
             except:
                 traceback.print_exc()
