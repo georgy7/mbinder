@@ -48,14 +48,19 @@ def save(mid, part, attachments_counter):
     try:
         decoded_name = decode_header(part.get_filename())
 
+        attachments_counter['value'] += 1
+
         if isinstance(decoded_name[0][0], str):
             name = decoded_name[0][0]
         else:
-            name_encoding = decoded_name[0][1]
-            name = decoded_name[0][0].decode(name_encoding)
+            try:
+                name_encoding = decoded_name[0][1]
+                name = decoded_name[0][0].decode(name_encoding)
+            except:
+                name = attachments_counter['value']
+                print('Could not decode %s %s attachment name.' % (mid, name))
 
         name = '%s %s' % (mid, name)
-        attachments_counter['value'] += 1
 
         try:
             with open(prefs['save_to'] + name, 'wb') as f:
@@ -107,3 +112,4 @@ for i in range(prefs['start'], prefs['stop']):
 print()
 print('Total:  %s' % (total))
 print('Failed: %s' % (failed))
+
