@@ -8,6 +8,10 @@
 # with prefix "n " where "n" is an order of attachment in mbox file. 
 
 # ---------------
+# Please check the unpacked files
+# with an antivirus before opening them!
+
+# ---------------
 # I make no representations or warranties of any kind concerning
 # the software, express, implied, statutory or otherwise,
 # including without limitation warranties of title, merchantability,
