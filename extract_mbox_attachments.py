@@ -115,8 +115,9 @@ def check_part(mid, part, attachments_counter):
             or mime_type.startswith('audio/') \
             or mime_type.startswith('video/'):
         if part.get_content_disposition() == 'inline':
-            print('Extracting inline part...')
-        print('Ignoring Content-disposition... Message id = %s, Content-type = %s.' % (mid, mime_type))
+            print('Extracting inline part... Message id = %s, Content-type = %s.' % (mid, mime_type))
+        else:
+            print('Other Content-disposition... Message id = %s, Content-type = %s.' % (mid, mime_type))
         save(mid, part, attachments_counter)
     elif prefs['extract_inline_images'] and mime_type.startswith('image/'):
         save(mid, part, attachments_counter, True)
