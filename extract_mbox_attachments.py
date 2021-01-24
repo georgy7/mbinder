@@ -24,6 +24,7 @@ import errno
 import mailbox
 import os
 import pathlib  # since Python 3.4
+import re
 import traceback
 from email.header import decode_header
 
@@ -49,6 +50,43 @@ if prefs['extract_inline_images'] and not os.path.exists(inline_image_folder):
 
 total = 0
 failed = 0
+
+
+def to_file_path(save_to, name):
+    return os.path.join(save_to, name)
+
+
+def get_extension(name):
+    extension = pathlib.Path(name).suffix
+    return extension if len(extension) <= 20 else ''
+
+
+def resolve_name_conflicts(save_to, name, file_paths, attachment_number):
+    file_path = to_file_path(save_to, name)
+
+    START = 1
+    iteration_number = START
+
+    while os.path.normcase(file_path) in file_paths:
+        extension = get_extension(name)
+        iteration = '' if iteration_number <= START else ' (%s)' % (iteration_number)
+        new_name = '%s attachment %s%s%s' % (name, attachment_number, iteration, extension)
+        file_path = to_file_path(save_to, new_name)
+        iteration_number += 1
+
+    file_paths.append(os.path.normcase(file_path))
+    return file_path
+
+
+# Whitespaces: tab, carriage return, newline, vertical tab, formfeed.
+FORBIDDEN_WHITESPACE_IN_FILENAMES = re.compile('[\t\r\n\v\f]+')
+OTHER_FORBIDDEN_FN_CHARACTERS = re.compile('[/\\\\\\?%\\*:\\|"<>\0]')
+
+
+def filter_fn_characters(s):
+    result = re.sub(FORBIDDEN_WHITESPACE_IN_FILENAMES, ' ', s)
+    result = re.sub(OTHER_FORBIDDEN_FN_CHARACTERS, '_', result)
+    return result
 
 
 def save(mid, part, attachments_counter, inline_image=False):
@@ -81,20 +119,23 @@ def save(mid, part, attachments_counter, inline_image=False):
                     name = attachment_number
                     print('Could not decode %s %s attachment name.' % (mid, name))
 
+        name = filter_fn_characters(name)
         name = '%s %s' % (mid, name)
 
+        previous_file_paths = attachments_counter['file_paths']
+
         try:
-            with open(save_to + name, 'wb') as f:
+            fn = resolve_name_conflicts(save_to, name, previous_file_paths, attachment_number)
+            with open(fn, 'wb') as f:
                 f.write(part.get_payload(decode=True))
         except OSError as e:
             if e.errno == errno.ENAMETOOLONG:
 
-                extension = pathlib.Path(name).suffix
-                extension = extension if len(extension) <= 20 else ''
-
+                extension = get_extension(name)
                 short_name = '%s %s%s' % (mid, attachment_number, extension)
 
-                with open(save_to + short_name, 'wb') as f:
+                fn = resolve_name_conflicts(save_to, short_name, previous_file_paths, attachment_number)
+                with open(fn, 'wb') as f:
                     f.write(part.get_payload(decode=True))
             else:
                 raise
@@ -129,7 +170,11 @@ def check_part(mid, part, attachments_counter):
 def process_message(mid):
     msg = mb.get_message(mid)
     if msg.is_multipart():
-        attachments_counter = {'value': 0, 'inline_image': 0}
+        attachments_counter = {
+            'value': 0,
+            'inline_image': 0,
+            'file_paths': []
+        }
         for part in msg.get_payload():
             check_part(mid, part, attachments_counter)
 
