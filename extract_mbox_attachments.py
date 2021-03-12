@@ -104,7 +104,7 @@ def save(mid, part, attachments_counter, inline_image=False):
             save_to = prefs['save_to']
 
         if part.get_filename() is None:
-            name = attachment_number
+            name = str(attachment_number)
             print('Filename is none: %s %s.' % (mid, name))
         else:
             decoded_name = decode_header(part.get_filename())
@@ -116,7 +116,7 @@ def save(mid, part, attachments_counter, inline_image=False):
                     name_encoding = decoded_name[0][1]
                     name = decoded_name[0][0].decode(name_encoding)
                 except:
-                    name = attachment_number
+                    name = str(attachment_number)
                     print('Could not decode %s %s attachment name.' % (mid, name))
 
         name = filter_fn_characters(name)
