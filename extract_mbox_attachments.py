@@ -148,7 +148,10 @@ def save(mid, part, attachments_counter, inline_image=False):
 
 def check_part(mid, part, attachments_counter):
     mime_type = part.get_content_type()
-    if (part.get_content_disposition() == 'attachment') \
+    if part.is_multipart():
+        for p in part.get_payload():
+            check_part(mid, p, attachments_counter)
+    elif (part.get_content_disposition() == 'attachment') \
             or ((part.get_content_disposition() != 'inline') and (part.get_filename() is not None)):
         save(mid, part, attachments_counter)
     elif (mime_type.startswith('application/') and not mime_type == 'application/javascript') \
@@ -162,9 +165,6 @@ def check_part(mid, part, attachments_counter):
         save(mid, part, attachments_counter)
     elif prefs['extract_inline_images'] and mime_type.startswith('image/'):
         save(mid, part, attachments_counter, True)
-    elif part.is_multipart():
-        for p in part.get_payload():
-            check_part(mid, p, attachments_counter)
 
 
 def process_message(mid):
