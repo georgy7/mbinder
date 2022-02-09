@@ -1,11 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 # Modified.
 # Original script source:
 # http://blog.marcbelmont.com/2012/10/script-to-extract-email-attachments.html
+# https://web.archive.org/web/20150312172727/http://blog.marcbelmont.com/2012/10/script-to-extract-email-attachments.html
 
 # Usage:
 # Run the script from a folder with file "all.mbox"
 # Attachments will be extracted into subfolder "attachments" 
-# with prefix "n " where "n" is an order of attachment in mbox file. 
+# with prefix "m " where m is a message ID in mbox file.
 
 # ---------------
 # Please check the unpacked files
@@ -69,7 +73,7 @@ def resolve_name_conflicts(save_to, name, file_paths, attachment_number):
 
     while os.path.normcase(file_path) in file_paths:
         extension = get_extension(name)
-        iteration = '' if iteration_number <= START else ' (%s)' % (iteration_number)
+        iteration = '' if iteration_number <= START else ' (%s)' % iteration_number
         new_name = '%s attachment %s%s%s' % (name, attachment_number, iteration, extension)
         file_path = to_file_path(save_to, new_name)
         iteration_number += 1
@@ -78,7 +82,7 @@ def resolve_name_conflicts(save_to, name, file_paths, attachment_number):
     return file_path
 
 
-# Whitespaces: tab, carriage return, newline, vertical tab, formfeed.
+# Whitespaces: tab, carriage return, newline, vertical tab, form feed.
 FORBIDDEN_WHITESPACE_IN_FILENAMES = re.compile('[\t\r\n\v\f]+')
 OTHER_FORBIDDEN_FN_CHARACTERS = re.compile('[/\\\\\\?%\\*:\\|"<>\0]')
 
@@ -125,7 +129,9 @@ def save(mid, part, attachments_counter, inline_image=False):
         previous_file_paths = attachments_counter['file_paths']
 
         try:
-            fn = resolve_name_conflicts(save_to, name, previous_file_paths, attachment_number)
+            fn = resolve_name_conflicts(save_to, name,
+                                        previous_file_paths,
+                                        attachment_number)
             with open(fn, 'wb') as f:
                 f.write(part.get_payload(decode=True))
         except OSError as e:
@@ -134,7 +140,9 @@ def save(mid, part, attachments_counter, inline_image=False):
                 extension = get_extension(name)
                 short_name = '%s %s%s' % (mid, attachment_number, extension)
 
-                fn = resolve_name_conflicts(save_to, short_name, previous_file_paths, attachment_number)
+                fn = resolve_name_conflicts(save_to, short_name,
+                                            previous_file_paths,
+                                            attachment_number)
                 with open(fn, 'wb') as f:
                     f.write(part.get_payload(decode=True))
             else:
@@ -158,10 +166,11 @@ def check_part(mid, part, attachments_counter):
             or mime_type.startswith('model/') \
             or mime_type.startswith('audio/') \
             or mime_type.startswith('video/'):
+        message_id_content_type = 'Message id = %s, Content-type = %s.' % (mid, mime_type)
         if part.get_content_disposition() == 'inline':
-            print('Extracting inline part... Message id = %s, Content-type = %s.' % (mid, mime_type))
+            print('Extracting inline part... ' + message_id_content_type)
         else:
-            print('Other Content-disposition... Message id = %s, Content-type = %s.' % (mid, mime_type))
+            print('Other Content-disposition... ' + message_id_content_type)
         save(mid, part, attachments_counter)
     elif prefs['extract_inline_images'] and mime_type.startswith('image/'):
         save(mid, part, attachments_counter, True)
@@ -189,5 +198,5 @@ for i in range(prefs['start'], prefs['stop']):
         print('Messages processed: {}'.format(i))
 
 print()
-print('Total:  %s' % (total))
-print('Failed: %s' % (failed))
+print('Total:  %s' % total)
+print('Failed: %s' % failed)
