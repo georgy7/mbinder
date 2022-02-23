@@ -93,6 +93,29 @@ def filter_fn_characters(s):
     return result
 
 
+def decode_filename(part, fallback_filename, mid):
+    if part.get_filename() is None:
+        print('Filename is none: %s %s.' % (mid, fallback_filename))
+        return fallback_filename
+    else:
+        decoded_name = decode_header(part.get_filename())
+
+        if isinstance(decoded_name[0][0], str):
+            return decoded_name[0][0]
+        else:
+            try:
+                name_encoding = decoded_name[0][1]
+                return decoded_name[0][0].decode(name_encoding)
+            except:
+                print('Could not decode %s %s attachment name.' % (mid, fallback_filename))
+                return fallback_filename
+
+
+def write_to_disk(part, file_path):
+    with open(file_path, 'wb') as f:
+        f.write(part.get_payload(decode=True))
+
+
 def save(mid, part, attachments_counter, inline_image=False):
     global total
     total = total + 1
@@ -100,54 +123,33 @@ def save(mid, part, attachments_counter, inline_image=False):
     try:
         if inline_image:
             attachments_counter['inline_image'] += 1
-            attachment_number = 'ii' + str(attachments_counter['inline_image'])
-            save_to = inline_image_folder
+            attachment_number_string = 'ii' + str(attachments_counter['inline_image'])
+            destination_folder = inline_image_folder
         else:
             attachments_counter['value'] += 1
-            attachment_number = attachments_counter['value']
-            save_to = prefs['save_to']
+            attachment_number_string = str(attachments_counter['value'])
+            destination_folder = prefs['save_to']
 
-        if part.get_filename() is None:
-            name = str(attachment_number)
-            print('Filename is none: %s %s.' % (mid, name))
-        else:
-            decoded_name = decode_header(part.get_filename())
-
-            if isinstance(decoded_name[0][0], str):
-                name = decoded_name[0][0]
-            else:
-                try:
-                    name_encoding = decoded_name[0][1]
-                    name = decoded_name[0][0].decode(name_encoding)
-                except:
-                    name = str(attachment_number)
-                    print('Could not decode %s %s attachment name.' % (mid, name))
-
-        name = filter_fn_characters(name)
-        name = '%s %s' % (mid, name)
+        filename = decode_filename(part, attachment_number_string, mid)
+        filename = filter_fn_characters(filename)
+        filename = '%s %s' % (mid, filename)
 
         previous_file_paths = attachments_counter['file_paths']
 
         try:
-            fn = resolve_name_conflicts(save_to, name,
-                                        previous_file_paths,
-                                        attachment_number)
-            with open(fn, 'wb') as f:
-                f.write(part.get_payload(decode=True))
+            write_to_disk(part, resolve_name_conflicts(
+                destination_folder, filename,
+                previous_file_paths,
+                attachment_number_string))
         except OSError as e:
             if e.errno == errno.ENAMETOOLONG:
-
-                extension = get_extension(name)
-                short_name = '%s %s%s' % (mid, attachment_number, extension)
-
-                fn = resolve_name_conflicts(save_to, short_name,
-                                            previous_file_paths,
-                                            attachment_number)
-                with open(fn, 'wb') as f:
-                    f.write(part.get_payload(decode=True))
+                short_name = '%s %s%s' % (mid, attachment_number_string, get_extension(filename))
+                write_to_disk(part, resolve_name_conflicts(
+                    destination_folder, short_name,
+                    previous_file_paths,
+                    attachment_number_string))
             else:
                 raise
-
     except:
         traceback.print_exc()
         global failed
