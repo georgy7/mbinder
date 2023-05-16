@@ -12,9 +12,9 @@
 # with prefix "m " where m is a message ID in mbox file.
 
 # Or
-# ./extract_mbox_attachments.py -i first.mbox -o attachments1/
-# ./extract_mbox_attachments.py -i second.mbox -o attachments2/
-# ./extract_mbox_attachments.py --help
+# ./mbinder.py -i first.mbox -o attachments1/
+# ./mbinder.py -i second.mbox -o attachments2/
+# ./mbinder.py --help
 
 # ---------------
 # Please check the unpacked files
