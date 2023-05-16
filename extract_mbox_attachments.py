@@ -31,6 +31,7 @@
 
 import errno
 import mailbox
+import mimetypes
 import os
 import pathlib  # since Python 3.4
 import re
@@ -167,7 +168,11 @@ def save(extractor, mid, part, attachments_counter, inline_image=False):
             attachment_number_string = str(attachments_counter['value'])
             destination_folder = extractor.options.output
 
-        filename = decode_filename(part, attachment_number_string, mid)
+        filename = decode_filename(
+            part,
+            attachment_number_string + str(mimetypes.guess_extension(part.get_content_type()) or ''),
+            mid)
+
         filename = filter_fn_characters(filename)
         filename = '%s %s' % (mid, filename)
 
