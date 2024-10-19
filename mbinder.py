@@ -52,6 +52,8 @@ def parse_options(args=[]):
     parser.add_argument('--stop',
                         type=message_id_type, default=100000000000,
                         help='On which message to stop, not included')
+    parser.add_argument('-s', '--sender', default='', help='Filter messages by sender email domain')
+    parser.add_argument('-r', '--recipient', default='', help='Filter messages by sender email domain')
     return parser.parse_args(args)
 
 
@@ -221,6 +223,17 @@ def check_part(extractor, mid, part, attachments_counter):
 
 def process_message(extractor, mid):
     msg = extractor.mbox.get_message(mid)
+
+    if extractor.options.sender:
+        sender = str(msg.get('From', '')).lower()
+        if extractor.options.sender.lower() not in sender:
+            return
+    
+    if extractor.options.recipient:
+        recipient = str(msg.get('To', '')).lower()
+        if extractor.options.recipient.lower() not in recipient:
+            return
+
     if msg.is_multipart():
         attachments_counter = {
             'value': 0,
